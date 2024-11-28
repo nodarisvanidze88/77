@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.forms import ModelForm
+from django.http import HttpRequest
 from django.utils.html import format_html
 from .models import ProductList, Users, CollectedProduct, Customers, Product_Category
 # Register your models here.
@@ -14,6 +16,11 @@ class Product_Admin_View(admin.ModelAdmin):
         return 'No Image'
     
     display_image.short_description='Image'
+
+    def save_model(self, request, obj, form, change):
+        # Generate the image URL based on the product ID
+        obj.image_urel = f"https://storage.googleapis.com/nodari/{obj.id}.jpg"
+        super().save_model(request, obj, form, change)
 
 admin.site.register(ProductList, Product_Admin_View)
 admin.site.register(Users)
