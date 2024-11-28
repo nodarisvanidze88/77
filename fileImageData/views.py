@@ -11,23 +11,26 @@ from .new_data import get_CSV_File_content
 def getCSVFile(request):
   file = get_CSV_File_content()
   header_items = list(file.fieldnames)
+  file_ids = set()
   for row in file:
+    file_ids.add(row[header_items[1]])
     category, created = Product_Category.objects.get_or_create(category_name=row[header_items[3]])
     ProductList.objects.update_or_create(
-      id=row[header_items[1]],
-      defaults={
-        'code': row[header_items[0]],
-        'item_name': row[header_items[2]],
-        'category_name': category,
-        'dimention': row[header_items[4]],
-        'warehouse': row[header_items[5]],
-        'qty_in_wh': row[header_items[6]],
-        'price': row[header_items[7]],
-        'image_urel': f"https://storage.googleapis.com/nodari/{row[header_items[1]]}.jpg"
-        }
-      )
-  resValue = JsonResponse({"message": 'Upload complete.'})
-  return resValue
+                id=row[header_items[1]],
+                defaults={
+                    'code': row[header_items[0]],
+                    'item_name': row[header_items[2]],
+                    'category_name': category,
+                    'dimention': row[header_items[4]],
+                    'warehouse': row[header_items[5]],
+                    'qty_in_wh': row[header_items[6]],
+                    'price': row[header_items[7]],
+                    'image_urel': f"https://storage.googleapis.com/nodari/{row[header_items[1]]}.jpg"
+                }
+              )
+    ProductList.objects.exclude(id__in=file_ids).update(price=0)
+    resValue = JsonResponse({"message": 'Upload complete.'})
+    return resValue
 
 @api_view(['GET'])
 def getItemsList(request):
