@@ -30,7 +30,7 @@ def getCSVFile(request):
                     'image_urel': f"https://storage.googleapis.com/nodari/{row[header_items[1]]}.jpg"
                 }
               )
-  ProductList.objects.exclude(id__in=file_ids).update(qty_in_wh=0)
+  ProductList.objects.exclude(id__in=file_ids).update(qty_in_wh=0.0)
   resValue = JsonResponse({"message": 'Upload complete.'})
   return resValue
 
