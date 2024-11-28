@@ -42,7 +42,7 @@ def getItemsList(request):
             'code': i.code,
             'product_id': i.id,
             'item_name': i.item_name,
-            'category_name': i.category_name,
+            'category_name': i.category_name.category_name,
             'dimention': i.dimention,
             'warehouse': i.warehouse,
             'qty_in_wh': i.qty_in_wh,
