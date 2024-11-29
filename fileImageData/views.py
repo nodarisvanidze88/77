@@ -1,11 +1,13 @@
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 from .models import ProductList, Users
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import viewsets
 from .serializers import CollectedProductSerializer, CustomersSerializer
-from .models import Customers, Product_Category
+from .models import Customers, Product_Category, MissingPhoto
 from .new_data import get_CSV_File_content
+from .storage_content import list_files_in_bucket
 
 @api_view(['GET'])
 def getCSVFile(request):
@@ -92,3 +94,18 @@ class CustomersList(viewsets.ModelViewSet):
   queryset = Customers.objects.all()
   serializer_class = CustomersSerializer
       
+@api_view(['GET'])
+def get_without_image_list(request):
+  bucket_name = 'nodari'
+  try:
+    image_ids = list_files_in_bucket(bucket_name)
+  except Exception as e:
+    return Response({'error':str(e)}, status=500)
+  else:
+    product_without_images = ProductList.objects.exclude(id__in=image_ids)
+    MissingPhoto.objects.all().delete()
+    MissingPhoto.objects.bulk_create([
+       MissingPhoto(product = product) for product in product_without_images
+    ])
+    print('hello')
+    return Response({"message": 'Generated list without photo'}, status=200)

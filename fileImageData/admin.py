@@ -1,8 +1,6 @@
 from django.contrib import admin
-from django.forms import ModelForm
-from django.http import HttpRequest
 from django.utils.html import format_html
-from .models import ProductList, Users, CollectedProduct, Customers, Product_Category
+from .models import ProductList, Users, CollectedProduct, Customers, Product_Category, MissingPhoto
 # Register your models here.
 class Product_Admin_View(admin.ModelAdmin):
     list_display = ['code', 'id', 'item_name', 'category_name', 
@@ -22,8 +20,62 @@ class Product_Admin_View(admin.ModelAdmin):
         obj.image_urel = f"https://storage.googleapis.com/nodari/{obj.id}.jpg"
         super().save_model(request, obj, form, change)
 
+class Missing_Photo_Admin_View(admin.ModelAdmin):
+    list_display = [
+        'product_code', 
+        'product_id', 
+        'product_item_name', 
+        'product_category_name', 
+        'product_dimention', 
+        'product_warehouse', 
+        'product_qty_in_wh', 
+        'product_price'
+    ]
+    search_fields = [
+        'product__code', 
+        'product__id', 
+        'product__item_name', 
+        'product__category_name__category_name', 
+        'product__dimention', 
+        'product__warehouse', 
+        'product__qty_in_wh', 
+        'product__price'
+    ]
+
+    @admin.display(ordering='product__code', description='Code')
+    def product_code(self, obj):
+        return obj.product.code
+
+    @admin.display(ordering='product__id', description='ID')
+    def product_id(self, obj):
+        return obj.product.id
+
+    @admin.display(ordering='product__item_name', description='Item Name')
+    def product_item_name(self, obj):
+        return obj.product.item_name
+
+    @admin.display(ordering='product__category_name__category_name', description='Category')
+    def product_category_name(self, obj):
+        return obj.product.category_name.category_name
+
+    @admin.display(ordering='product__dimention', description='Dimension')
+    def product_dimention(self, obj):
+        return obj.product.dimention
+
+    @admin.display(ordering='product__warehouse', description='Warehouse')
+    def product_warehouse(self, obj):
+        return obj.product.warehouse
+
+    @admin.display(ordering='product__qty_in_wh', description='Quantity')
+    def product_qty_in_wh(self, obj):
+        return obj.product.qty_in_wh
+
+    @admin.display(ordering='product__price', description='Price')
+    def product_price(self, obj):
+        return obj.product.price
 admin.site.register(ProductList, Product_Admin_View)
 admin.site.register(Users)
 admin.site.register(CollectedProduct)
 admin.site.register(Customers)
 admin.site.register(Product_Category)
+admin.site.register(MissingPhoto,Missing_Photo_Admin_View)

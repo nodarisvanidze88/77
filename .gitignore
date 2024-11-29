@@ -3,3 +3,5 @@ google_bucket.json
 /static/
 db.sqlite3
 .env
+service-account.json
+fileImageData/migrations

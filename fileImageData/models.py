@@ -20,6 +20,11 @@ class ProductList(models.Model):
     def __str__(self):
         return self.item_name
 
+class MissingPhoto(models.Model):
+    product = models.ForeignKey(ProductList, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.product.item_name
+    
 class Users(models.Model):
   user = models.CharField(max_length = 50, unique=True)
 

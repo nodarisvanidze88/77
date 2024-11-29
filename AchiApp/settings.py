@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import json
+from google.oauth2 import service_account
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,6 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 GOOGLE_SHEET = os.getenv('GOOGLE_SHEET')
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(os.path.join(BASE_DIR,'service-account.json'))
+
 if SECRET_KEY is None:
   print("Please setup a SECRET_KEY in the Secrets (Environment variables) tab. See README.md for more.")
   exit(1)
