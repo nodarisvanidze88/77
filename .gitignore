@@ -5,3 +5,4 @@ db.sqlite3
 .env
 service-account.json
 fileImageData/migrations
+fileImageData/__oycache__
