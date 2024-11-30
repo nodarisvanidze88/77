@@ -42,7 +42,7 @@ class Missing_Photo_Admin_View(admin.ModelAdmin):
         'product__qty_in_wh', 
         'product__price'
     ]
-
+    list_filter = ['product__category_name__category_name']
     @admin.display(ordering='product__code', description='Code')
     def product_code(self, obj):
         return obj.product.code
