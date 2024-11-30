@@ -1,5 +1,5 @@
 from django.urls import path,include
-from .views import getCSVFile, getItemsList, getWithoutImage, getUsers, addCollectedData, CustomersList, get_without_image_list
+from .views import getCSVFile, ProductListAPIView, getWithoutImage, getUsers, addCollectedData, CustomersList, get_without_image_list
 from rest_framework.routers import DefaultRouter
 
 route = DefaultRouter()
@@ -8,7 +8,7 @@ route.register(r'customers',CustomersList, basename="customerList" )
 
 urlpatterns = [
     path('test', getCSVFile, name="csvFile"),
-    path('allItems', getItemsList, name='itemlist'),
+    path('allItems', ProductListAPIView.as_view(), name='itemlist'),
     path('withoutimages', getWithoutImage, name='withoutImages'),
     path('getusers', getUsers, name="getusers"),
     path('add_collection_data', addCollectedData, name="collectedData"),

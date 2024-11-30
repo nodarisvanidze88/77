@@ -4,7 +4,8 @@ from .models import ProductList, Users
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import viewsets
-from .serializers import CollectedProductSerializer, CustomersSerializer
+from rest_framework.pagination import PageNumberPagination
+from .serializers import CollectedProductSerializer, CustomersSerializer, ProductListSerializer
 from .models import Customers, Product_Category, MissingPhoto
 from .new_data import get_CSV_File_content
 from .storage_content import list_files_in_bucket
@@ -36,22 +37,14 @@ def getCSVFile(request):
   resValue = JsonResponse({"message": 'Upload complete.'})
   return resValue
 
-@api_view(['GET'])
-def getItemsList(request):
-    if request.method=='GET':
-        items = ProductList.objects.filter(qty_in_wh__gt=0)
-        data = [{
-            'code': i.code,
-            'product_id': i.id,
-            'item_name': i.item_name,
-            'category_name': i.category_name.category_name,
-            'dimention': i.dimention,
-            'warehouse': i.warehouse,
-            'qty_in_wh': i.qty_in_wh,
-            'price': i.price,
-            'image_urel':i.image_urel,
-                } for i in items]
-        return JsonResponse(data, safe=False)
+class ProductListAPIView(APIView):
+   def get(self,request, *args, **kwargs):
+      items = ProductList.objects.filter(qty_in_wh__gt=0)
+      paginator = PageNumberPagination()
+      paginator.page_size=20
+      paginated_items = paginator.paginate_queryset(items, request)
+      serializer = ProductListSerializer(paginated_items, many=True)
+      return paginator.get_paginated_response(serializer.data)
 
 @api_view(['GET'])
 def getWithoutImage(request):
