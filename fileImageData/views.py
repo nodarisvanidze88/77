@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from .models import ProductList, Users
+from django.db.models import Count
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import viewsets
@@ -37,14 +38,35 @@ def getCSVFile(request):
   resValue = JsonResponse({"message": 'Upload complete.'})
   return resValue
 
-class ProductListAPIView(APIView):
-   def get(self,request, *args, **kwargs):
-      items = ProductList.objects.filter(qty_in_wh__gt=0)
-      paginator = PageNumberPagination()
-      paginator.page_size=20
-      paginated_items = paginator.paginate_queryset(items, request)
-      serializer = ProductListSerializer(paginated_items, many=True)
-      return paginator.get_paginated_response(serializer.data)
+class ProductListView(APIView):
+    def get(self, request, *args, **kwargs):
+        category_id = request.query_params.get('category_id', None)
+        queryset = ProductList.objects.filter(qty_in_wh__gt=0)
+        if category_id and category_id != '-1':
+            queryset = queryset.filter(category_name__id=category_id)
+        queryset = queryset.order_by('id')
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        serializer = ProductListSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+   
+class CategoryCountsAPIView(APIView):
+   def get(self, request, *args, **kwargs):
+        category_counts = ProductList.objects.filter(qty_in_wh__gt=0).values(
+           'category_name__id','category_name__category_name').annotate(
+            product_count=Count('id')
+        ).order_by('category_name__category_name')
+        data = [{'id':-1,
+                'category_name':'All',
+                'product_count': sum(cat['product_count'] for cat in category_counts)}]
+        for category in category_counts:
+          data.append({'id':category['category_name__id'],
+                       'category_name': category['category_name__category_name'],
+                        'product_count': category['product_count'],
+          })
+        return Response(data)
 
 @api_view(['GET'])
 def getWithoutImage(request):

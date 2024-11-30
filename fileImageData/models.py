@@ -12,8 +12,8 @@ class ProductList(models.Model):
     item_name = models.CharField(max_length=200)
     category_name = models.ForeignKey(Product_Category, on_delete=models.CASCADE, related_name='category')
     dimention = models.CharField(max_length=50)
-    warehouse = models.CharField(max_length=50) # code of warehouse
-    qty_in_wh = models.FloatField() # quantity in warehouse
+    warehouse = models.CharField(max_length=50)
+    qty_in_wh = models.FloatField() 
     price = models.FloatField()
     image_urel = models.URLField(null=True, blank=True)
 
