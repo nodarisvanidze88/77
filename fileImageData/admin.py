@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import ProductList, Users, CollectedProduct, Customers, Product_Category, MissingPhoto
+from .download_xlsx import get_excel_file
 # Register your models here.
 class Product_Admin_View(admin.ModelAdmin):
     list_display = ['code', 'id', 'item_name', 'category_name', 
@@ -73,6 +74,14 @@ class Missing_Photo_Admin_View(admin.ModelAdmin):
     @admin.display(ordering='product__price', description='Price')
     def product_price(self, obj):
         return obj.product.price
+    actions=['export_missing_photo_to_excel']
+
+    @admin.action(description='Export Missing Photos to Excel')
+    def export_missing_photo_to_excel(self,request,queryset):
+        all_missing_photos = MissingPhoto.objects.all()
+        return get_excel_file(query=all_missing_photos)
+
+    
 admin.site.register(ProductList, Product_Admin_View)
 admin.site.register(Users)
 admin.site.register(CollectedProduct)
