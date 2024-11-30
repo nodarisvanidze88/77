@@ -8,7 +8,7 @@ class Product_Admin_View(admin.ModelAdmin):
                     'dimention', 'warehouse', 'qty_in_wh', 'price', 'display_image']
     search_fields =['code', 'id', 'item_name', 'category_name__category_name', 
                     'dimention', 'warehouse', 'qty_in_wh', 'price']
-    
+    list_filter = ['category_name__category_name']
     def display_image(self, obj):
         if obj.image_urel:
             return format_html('<img src="{}" style="width:100px; height=auto;"/>', obj.image_urel)
