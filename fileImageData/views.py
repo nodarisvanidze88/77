@@ -39,7 +39,7 @@ def getCSVFile(request):
 @api_view(['GET'])
 def getItemsList(request):
     if request.method=='GET':
-        items = ProductList.objects.all()
+        items = ProductList.objects.filter(qty_in_wh__gt=0)
         data = [{
             'code': i.code,
             'product_id': i.id,
