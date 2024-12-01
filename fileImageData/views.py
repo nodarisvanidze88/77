@@ -46,7 +46,7 @@ class ProductListView(APIView):
             queryset = queryset.filter(category_name__id=category_id)
         queryset = queryset.order_by('id')
         paginator = PageNumberPagination()
-        paginator.page_size = 10
+        paginator.page_size = 20
         paginated_queryset = paginator.paginate_queryset(queryset, request)
         serializer = ProductListSerializer(paginated_queryset, many=True)
         return paginator.get_paginated_response(serializer.data)
