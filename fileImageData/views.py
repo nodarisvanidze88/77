@@ -20,6 +20,7 @@ def getCSVFile(request):
     file_ids.add(row[header_items[1]])
     price = row[header_items[7]] if row[header_items[7]] else 0
     qty = row[header_items[6]] if float(price) > 0 else 0
+    warehouse = row[header_items[5]] if row[header_items[5]] else "1"
     category, created = Product_Category.objects.get_or_create(category_name=row[header_items[3]])
     ProductList.objects.update_or_create(
                 id=row[header_items[1]],
@@ -28,7 +29,7 @@ def getCSVFile(request):
                     'item_name': row[header_items[2]],
                     'category_name': category,
                     'dimention': row[header_items[4]],
-                    'warehouse': row[header_items[5]],
+                    'warehouse': warehouse,
                     'qty_in_wh': qty,
                     'price': price,
                     'image_urel': f"https://storage.googleapis.com/nodari/{row[header_items[1]]}.jpg"
