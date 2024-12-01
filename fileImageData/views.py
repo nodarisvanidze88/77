@@ -19,7 +19,7 @@ def getCSVFile(request):
   for row in file:
     file_ids.add(row[header_items[1]])
     price = row[header_items[7]] if row[header_items[7]] else 0
-    qty = row[header_items[6]] if price > 0 else 0
+    qty = row[header_items[6]] if float(price) > 0 else 0
     category, created = Product_Category.objects.get_or_create(category_name=row[header_items[3]])
     ProductList.objects.update_or_create(
                 id=row[header_items[1]],
