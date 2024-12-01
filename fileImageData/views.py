@@ -14,12 +14,11 @@ from .storage_content import list_files_in_bucket
 @api_view(['GET'])
 def getCSVFile(request):
   file = get_CSV_File_content()
-  print(file)
   header_items = list(file.fieldnames)
   file_ids = set()
   for row in file:
-    print(row[header_items[1]])
     file_ids.add(row[header_items[1]])
+    price = row[header_items[7]] if row[header_items[7]] else 0
     category, created = Product_Category.objects.get_or_create(category_name=row[header_items[3]])
     ProductList.objects.update_or_create(
                 id=row[header_items[1]],
@@ -30,7 +29,7 @@ def getCSVFile(request):
                     'dimention': row[header_items[4]],
                     'warehouse': row[header_items[5]],
                     'qty_in_wh': row[header_items[6]],
-                    'price': row[header_items[7]],
+                    'price': price,
                     'image_urel': f"https://storage.googleapis.com/nodari/{row[header_items[1]]}.jpg"
                 }
               )
