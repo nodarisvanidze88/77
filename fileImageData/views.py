@@ -52,7 +52,22 @@ class ProductListView(APIView):
         serializer = ProductListSerializer(paginated_queryset, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-   
+class GetProductIDs(APIView):
+   def get(self, request, *args, **kwargs):
+      result = ProductList.objects.filter(qty_in_wh__gt=0).order_by('id').values_list('id',flat=True)
+      return Response(result)
+
+class GetOneProductDetails(APIView):
+   def get(self, request, *args, **kwargs):
+      query = request.query_params.get('id',None)
+      try:
+        result = ProductList.objects.get(id=query)
+      except ProductList.DoesNotExist as e:
+        return Response({"Message":e}, status=400)
+      else:
+        serializer = ProductListSerializer(result)
+        return Response(serializer.data)
+      
 class CategoryCountsAPIView(APIView):
    def get(self, request, *args, **kwargs):
         category_counts = ProductList.objects.filter(qty_in_wh__gt=0).values(
@@ -92,7 +107,10 @@ def getUsers(request):
     userList = Users.objects.all()
     data = list(userList.values())
     return JsonResponse(data, safe=False)
-  
+class GetUsers(APIView):
+   def get(self, request, *args, **kwargs):
+      ...
+       
 @api_view(['POST'])
 def addCollectedData(request):
    if request.method=="POST":
