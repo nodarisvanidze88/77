@@ -42,14 +42,18 @@ class Customers(models.Model):
         return f'({self.identification}) - {self.customer_name}'
 
 class CollectedProduct(models.Model):
+    ORDER_STATUSES= [('Open','Open'),
+                     ('Delivered','Delivered')]
+    invoice = models.CharField(max_length=50)
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='supervizer')
     customer_info = models.ForeignKey(Customers, on_delete=models.CASCADE, related_name='customer_Info')
     product_ID = models.ForeignKey(ProductList, on_delete=models.CASCADE, related_name='selectedItem')
     quantity = models.IntegerField()
-    date = models.DateField(auto_now=True, null=True, blank=True)
+    date = models.DateField(auto_now=True)
+    status = models.CharField(max_length=50, choices=ORDER_STATUSES, default='Open')
 
     def __str__(self):
-        return f"{self.date} {self.user} {self.customer_info} {self.product_ID} {self.quantity}"
+        return f"{self.invoice}  {self.date} {self.user} {self.customer_info} {self.product_ID} {self.quantity}"
 
 
 

@@ -81,10 +81,11 @@ class Missing_Photo_Admin_View(admin.ModelAdmin):
         all_missing_photos = MissingPhoto.objects.all()
         return get_excel_file(query=all_missing_photos)
 
-    
+class CollectedItemsAdmin(admin.ModelAdmin):
+    list_display = ['invoice', 'date', 'customer_info', 'product_ID_id','quantity','status']
 admin.site.register(ProductList, Product_Admin_View)
 admin.site.register(Users)
-admin.site.register(CollectedProduct)
+admin.site.register(CollectedProduct, CollectedItemsAdmin)
 admin.site.register(Customers)
 admin.site.register(Product_Category)
 admin.site.register(MissingPhoto,Missing_Photo_Admin_View)

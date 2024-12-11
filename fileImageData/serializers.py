@@ -10,7 +10,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 class CollectedProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectedProduct
-        fields= ['user','customer_info','product_ID','quantity', 'date']
+        fields= ['invoice','user','customer_info','product_ID','quantity', 'date', 'status']
 
 class CustomersSerializer(serializers.ModelSerializer):
     class Meta:

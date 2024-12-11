@@ -114,8 +114,8 @@ class GetUsers(APIView):
 @api_view(['POST'])
 def addCollectedData(request):
    if request.method=="POST":
-      collected_data = request.data.get('collected_data',[])
-
+      print(request.data)
+      collected_data = [request.data.get('collected_data',[])]
       serializer = CollectedProductSerializer(data=collected_data, many=True)
       if serializer.is_valid():
          serializer.save()
