@@ -44,8 +44,9 @@ class ProductListView(APIView):
         category_id = request.query_params.get('category_id', None)
         queryset = ProductList.objects.filter(qty_in_wh__gt=0)
         if category_id and category_id != '-1':
-            queryset = queryset.filter(category_name__id=category_id)
-        queryset = queryset.order_by('id')
+          queryset = queryset.filter(category_name__id=category_id)
+        else:
+          queryset = queryset.order_by('category_name','id')
         paginator = PageNumberPagination()
         paginator.page_size = 20
         paginated_queryset = paginator.paginate_queryset(queryset, request)
