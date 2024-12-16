@@ -83,7 +83,7 @@ class Missing_Photo_Admin_View(admin.ModelAdmin):
         return get_excel_file(query=all_missing_photos)
 
 class CollectedItemsAdmin(admin.ModelAdmin):
-    list_display = ['invoice','customer_info', 'product_ID_id','quantity','price','total','status']
+    list_display = ['invoice','customer_info', 'user','product_ID_id','quantity','price','total','status']
 
 class CollectedProductInline(admin.TabularInline):
     model = CollectedProduct

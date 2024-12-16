@@ -48,7 +48,7 @@ class ParentInvoice(models.Model):
                      ('Delivered','Delivered'),
                      ('Canceled','Canceled')]
     invoice = models.CharField(max_length=50, unique=True)
-    date = models.DateField(auto_now=True)
+    date = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=50, choices=ORDER_STATUSES, default='Open')
 
     def __str__(self):

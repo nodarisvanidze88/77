@@ -142,5 +142,4 @@ def get_without_image_list(request):
     MissingPhoto.objects.bulk_create([
        MissingPhoto(product = product) for product in product_without_images
     ])
-    print('hello')
     return Response({"message": 'Generated list without photo'}, status=200)
