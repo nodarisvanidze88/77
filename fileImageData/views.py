@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from .serializers import CollectedProductSerializer, CustomersSerializer, ProductListSerializer
-from .models import Customers, Product_Category, MissingPhoto
+from .models import Customers, Product_Category, MissingPhoto, ParentInvoice
 from .new_data import get_CSV_File_content
 from .storage_content import list_files_in_bucket
 
@@ -114,16 +114,16 @@ class GetUsers(APIView):
        
 @api_view(['POST'])
 def addCollectedData(request):
-   if request.method=="POST":
-      print(request.data)
-      collected_data = [request.data.get('collected_data',[])]
-      serializer = CollectedProductSerializer(data=collected_data, many=True)
-      if serializer.is_valid():
-         serializer.save()
-         return Response(serializer.data, status=201)
-      else:
-         print(serializer.errors)
-      return Response(serializer.errors, status=400)
+  if request.method == "POST":
+    collected_data = request.data.get('collected_data', [])
+    invoice_number = collected_data["invoice"]  
+    invoice_instance, created = ParentInvoice.objects.get_or_create(invoice=invoice_number)
+    collected_data['invoice'] = invoice_instance.id
+    serializer = CollectedProductSerializer(data=[collected_data], many=True)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
    
 class CustomersList(viewsets.ModelViewSet):
   queryset = Customers.objects.all()

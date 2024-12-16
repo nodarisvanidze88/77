@@ -40,20 +40,37 @@ class Customers(models.Model):
 
     def __str__(self):
         return f'({self.identification}) - {self.customer_name}'
+    
 
-class CollectedProduct(models.Model):
+class ParentInvoice(models.Model):
     ORDER_STATUSES= [('Open','Open'),
-                     ('Delivered','Delivered')]
-    invoice = models.CharField(max_length=50)
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='supervizer')
-    customer_info = models.ForeignKey(Customers, on_delete=models.CASCADE, related_name='customer_Info')
-    product_ID = models.ForeignKey(ProductList, on_delete=models.CASCADE, related_name='selectedItem')
-    quantity = models.IntegerField()
+                     ('Confirmed','Confirmed'),
+                     ('Delivered','Delivered'),
+                     ('Canceled','Canceled')]
+    invoice = models.CharField(max_length=50, unique=True)
     date = models.DateField(auto_now=True)
     status = models.CharField(max_length=50, choices=ORDER_STATUSES, default='Open')
 
     def __str__(self):
-        return f"{self.invoice}  {self.date} {self.user} {self.customer_info} {self.product_ID} {self.quantity}"
+        return self.invoice
+    
+class CollectedProduct(models.Model):
+    ORDER_STATUSES= [('Available','Available'),
+                     ('Missing','Missing'),]
+    invoice = models.ForeignKey(ParentInvoice, on_delete=models.CASCADE)
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='supervizer')
+    customer_info = models.ForeignKey(Customers, on_delete=models.CASCADE, related_name='customer_Info')
+    product_ID = models.ForeignKey(ProductList, on_delete=models.CASCADE, related_name='selectedItem')
+    quantity = models.IntegerField()
+    price = models.FloatField()
+    total = models.FloatField()
+    status = models.CharField(max_length=50, choices=ORDER_STATUSES, default='Available') 
 
 
+    def __str__(self):
+        return f"{self.invoice} {self.user} {self.customer_info} {self.product_ID} {self.quantity}"
+
+    def save(self, *args, **kwargs):
+        self.total = self.price * self.quantity
+        super().save(*args, **kwargs)
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CollectedProduct
+from .models import CollectedProduct, Users, ParentInvoice
 from .models import Customers, ProductList
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -8,9 +8,13 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = ProductList
         fields = ['code', 'id', 'item_name', 'category_name', 'dimention', 'warehouse', 'qty_in_wh', 'price', 'image_urel']
 class CollectedProductSerializer(serializers.ModelSerializer):
+    invoice = serializers.PrimaryKeyRelatedField(queryset=ParentInvoice.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=Users.objects.all())
+    customer_info = serializers.PrimaryKeyRelatedField(queryset=Customers.objects.all())
+    product_ID = serializers.PrimaryKeyRelatedField(queryset=ProductList.objects.all())
     class Meta:
         model = CollectedProduct
-        fields= ['invoice','user','customer_info','product_ID','quantity', 'date', 'status']
+        fields= ['invoice','user','customer_info','product_ID','quantity','price']
 
 class CustomersSerializer(serializers.ModelSerializer):
     class Meta:

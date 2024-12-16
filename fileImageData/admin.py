@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import ProductList, Users, CollectedProduct, Customers, Product_Category, MissingPhoto
+from .models import ProductList, Users, CollectedProduct, Customers, Product_Category, MissingPhoto, ParentInvoice
 from .download_xlsx import get_excel_file
+from django.db.models import Sum
 # Register your models here.
 class Product_Admin_View(admin.ModelAdmin):
     list_display = ['code', 'id', 'item_name', 'category_name', 
@@ -82,10 +83,31 @@ class Missing_Photo_Admin_View(admin.ModelAdmin):
         return get_excel_file(query=all_missing_photos)
 
 class CollectedItemsAdmin(admin.ModelAdmin):
-    list_display = ['invoice', 'date', 'customer_info', 'product_ID_id','quantity','status']
+    list_display = ['invoice','customer_info', 'product_ID_id','quantity','price','total','status']
+
+class CollectedProductInline(admin.TabularInline):
+    model = CollectedProduct
+    extra = 1
+
+class ParentInvoiceAdmin(admin.ModelAdmin):
+    list_display = ('invoice', 'date','get_customer','sum_total','status')
+    inlines = [CollectedProductInline]
+    def sum_total(self, obj):
+        return CollectedProduct.objects.filter(invoice=obj).aggregate(Sum('total'))['total__sum'] or 0
+    
+    def get_customer(self,obj):
+        collected_product = CollectedProduct.objects.filter(invoice=obj).first()
+        if collected_product:
+            return collected_product.customer_info.customer_name
+        return None 
+    
+    get_customer.short_description = 'Customer'
+    sum_total.short_description = 'Sum of Products' 
+
 admin.site.register(ProductList, Product_Admin_View)
 admin.site.register(Users)
 admin.site.register(CollectedProduct, CollectedItemsAdmin)
 admin.site.register(Customers)
 admin.site.register(Product_Category)
 admin.site.register(MissingPhoto,Missing_Photo_Admin_View)
+admin.site.register(ParentInvoice, ParentInvoiceAdmin)
