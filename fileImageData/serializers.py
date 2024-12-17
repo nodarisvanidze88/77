@@ -17,4 +17,4 @@ class CollectedProductSerializer(serializers.ModelSerializer):
 class CustomersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customers
-        fields = ['id','identification','customer_name','customer_address']
+        fields = ['id','identification','customer_name','customer_address','discount']

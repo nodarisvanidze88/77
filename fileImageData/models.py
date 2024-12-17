@@ -34,6 +34,7 @@ class Customers(models.Model):
     identification = models.CharField(max_length=11, unique=True)
     customer_name = models.CharField(max_length=50)
     customer_address = models.CharField(max_length=200)
+    discount = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return f'({self.identification}) - {self.customer_name}'
@@ -68,6 +69,8 @@ class CollectedProduct(models.Model):
         return f"{self.invoice} {self.product_ID} {self.quantity}"
 
     def save(self, *args, **kwargs):
-        self.total = (Decimal(self.price) * Decimal(self.quantity)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        total = (Decimal(self.price) * Decimal(self.quantity)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        discount = (Decimal(total)*Decimal(self.invoice.customer_info.discount/100)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        self.total = total - discount
         super().save(*args, **kwargs)
 
