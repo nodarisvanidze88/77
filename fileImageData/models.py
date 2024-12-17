@@ -1,5 +1,5 @@
 from django.db import models
-
+from decimal import Decimal, ROUND_HALF_UP
 class Product_Category(models.Model):
     category_name = models.CharField(max_length=100, unique=True)
     def __str__(self):
@@ -68,6 +68,6 @@ class CollectedProduct(models.Model):
         return f"{self.invoice} {self.product_ID} {self.quantity}"
 
     def save(self, *args, **kwargs):
-        self.total = self.price * self.quantity
+        self.total = (Decimal(self.price) * Decimal(self.quantity)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         super().save(*args, **kwargs)
 
