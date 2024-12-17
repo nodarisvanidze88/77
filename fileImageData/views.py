@@ -116,14 +116,22 @@ class GetUsers(APIView):
 def addCollectedData(request):
   if request.method == "POST":
     collected_data = request.data.get('collected_data', [])
-    invoice_number = collected_data["invoice"]  
-    invoice_instance, created = ParentInvoice.objects.get_or_create(invoice=invoice_number)
+    print(collected_data)
+    invoice_number = collected_data["invoice"]
+    user_id = collected_data['user']
+    customer = collected_data['customer_info']
+    current_user = Users.objects.get(id=user_id)
+    current_customer = Customers.objects.get(id=customer)
+    invoice_instance, created = ParentInvoice.objects.get_or_create(invoice=invoice_number,
+                                                                    customer_info=current_customer,
+                                                                    user = current_user)
     collected_data['invoice'] = invoice_instance.id
     serializer = CollectedProductSerializer(data=[collected_data], many=True)
     if serializer.is_valid():
       serializer.save()
       return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
+
    
 class CustomersList(viewsets.ModelViewSet):
   queryset = Customers.objects.all()

@@ -16,9 +16,8 @@ class ProductList(models.Model):
     qty_in_wh = models.FloatField() 
     price = models.FloatField()
     image_urel = models.URLField(null=True, blank=True)
-
     def __str__(self):
-        return self.item_name
+        return f"{self.id} - {self.item_name} - Qty: {self.qty_in_wh}"
 
 class MissingPhoto(models.Model):
     product = models.ForeignKey(ProductList, on_delete=models.CASCADE)
@@ -30,8 +29,6 @@ class Users(models.Model):
 
   def __str__(self):
         return self.user
-
-
   
 class Customers(models.Model):
     identification = models.CharField(max_length=11, unique=True)
@@ -48,6 +45,8 @@ class ParentInvoice(models.Model):
                      ('Delivered','Delivered'),
                      ('Canceled','Canceled')]
     invoice = models.CharField(max_length=50, unique=True)
+    customer_info = models.ForeignKey(Customers, on_delete=models.CASCADE, related_name='customer_Info')
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='supervizer')
     date = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=50, choices=ORDER_STATUSES, default='Open')
 
@@ -58,8 +57,6 @@ class CollectedProduct(models.Model):
     ORDER_STATUSES= [('Available','Available'),
                      ('Missing','Missing'),]
     invoice = models.ForeignKey(ParentInvoice, on_delete=models.CASCADE)
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='supervizer')
-    customer_info = models.ForeignKey(Customers, on_delete=models.CASCADE, related_name='customer_Info')
     product_ID = models.ForeignKey(ProductList, on_delete=models.CASCADE, related_name='selectedItem')
     quantity = models.IntegerField()
     price = models.FloatField()
@@ -68,7 +65,7 @@ class CollectedProduct(models.Model):
 
 
     def __str__(self):
-        return f"{self.invoice} {self.user} {self.customer_info} {self.product_ID} {self.quantity}"
+        return f"{self.invoice} {self.product_ID} {self.quantity}"
 
     def save(self, *args, **kwargs):
         self.total = self.price * self.quantity

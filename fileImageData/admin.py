@@ -75,6 +75,7 @@ class Missing_Photo_Admin_View(admin.ModelAdmin):
     @admin.display(ordering='product__price', description='Price')
     def product_price(self, obj):
         return obj.product.price
+    
     actions=['export_missing_photo_to_excel']
 
     @admin.action(description='Export Missing Photos to Excel')
@@ -83,25 +84,18 @@ class Missing_Photo_Admin_View(admin.ModelAdmin):
         return get_excel_file(query=all_missing_photos)
 
 class CollectedItemsAdmin(admin.ModelAdmin):
-    list_display = ['invoice','customer_info', 'user','product_ID_id','quantity','price','total','status']
+    list_display = ['invoice','product_ID_id','quantity','price','total','status']
 
 class CollectedProductInline(admin.TabularInline):
     model = CollectedProduct
     extra = 1
 
 class ParentInvoiceAdmin(admin.ModelAdmin):
-    list_display = ('invoice', 'date','get_customer','sum_total','status')
+    list_display = ('invoice', 'date','customer_info','sum_total','status')
     inlines = [CollectedProductInline]
     def sum_total(self, obj):
         return CollectedProduct.objects.filter(invoice=obj).aggregate(Sum('total'))['total__sum'] or 0
     
-    def get_customer(self,obj):
-        collected_product = CollectedProduct.objects.filter(invoice=obj).first()
-        if collected_product:
-            return collected_product.customer_info.customer_name
-        return None 
-    
-    get_customer.short_description = 'Customer'
     sum_total.short_description = 'Sum of Products' 
 
 admin.site.register(ProductList, Product_Admin_View)
