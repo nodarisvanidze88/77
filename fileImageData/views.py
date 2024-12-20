@@ -6,8 +6,8 @@ from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
-from .serializers import CollectedProductSerializer, CustomersSerializer, ProductListSerializer
-from .models import Customers, Product_Category, MissingPhoto, ParentInvoice
+from .serializers import CollectedProductSerializer, CustomersSerializer, ProductListSerializer, PharentInvoiceSerializer
+from .models import Customers, Product_Category, MissingPhoto, ParentInvoice, CollectedProduct
 from .new_data import get_CSV_File_content
 from .storage_content import list_files_in_bucket
 
@@ -151,3 +151,22 @@ def get_without_image_list(request):
        MissingPhoto(product = product) for product in product_without_images
     ])
     return Response({"message": 'Generated list without photo'}, status=200)
+  
+
+class Get_pharent_invoice(APIView):
+   def get(self, request, *args, **kwargs):
+      customer_info = request.query_params.get('customer_info', None)
+      if customer_info is None:
+        return Response({"error": "Customer info is required"}, status=400)
+      invoice = ParentInvoice.objects.filter(customer_info=customer_info)
+      serializer = PharentInvoiceSerializer(invoice, many=True)
+      return Response(serializer.data)
+   
+class Get_Collected_products(APIView):
+   def get(self, request, *args, **kwargs):
+      invoice = request.query_params.get('invoice', None)
+      if invoice is None:
+        return Response({"error": "Invoice is required"}, status=400)
+      collected_products = CollectedProduct.objects.filter(invoice__invoice=invoice)
+      serializer = CollectedProductSerializer(collected_products, many=True)
+      return Response(serializer.data)

@@ -1,5 +1,6 @@
 from django.db import models
 from decimal import Decimal, ROUND_HALF_UP
+from django.db.models import Sum
 class Product_Category(models.Model):
     category_name = models.CharField(max_length=100, unique=True)
     def __str__(self):
@@ -53,6 +54,9 @@ class ParentInvoice(models.Model):
 
     def __str__(self):
         return self.invoice
+    @property
+    def get_total(self):
+        return self.collectedproduct_set.aggregate(Sum('total'))['total__sum']
     
 class CollectedProduct(models.Model):
     ORDER_STATUSES= [('Available','Available'),

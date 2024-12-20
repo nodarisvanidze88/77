@@ -18,3 +18,10 @@ class CustomersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customers
         fields = ['id','identification','customer_name','customer_address','discount']
+
+class PharentInvoiceSerializer(serializers.ModelSerializer):
+    customer_info = serializers.PrimaryKeyRelatedField(queryset=Customers.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=Users.objects.all())
+    class Meta:
+        model = ParentInvoice
+        fields = ['invoice','customer_info','user','date','status', 'get_total']
