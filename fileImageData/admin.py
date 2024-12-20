@@ -85,7 +85,7 @@ class Missing_Photo_Admin_View(admin.ModelAdmin):
 
 class CollectedItemsAdmin(admin.ModelAdmin):
     list_display = ['invoice','product_ID_id','quantity','price','total','status']
-    search_fields =['invoice','product_ID_id','status']
+    search_fields =['invoice__invoice','product_ID__id','status']
     list_filter = ['status']
 
 class CollectedProductInline(admin.TabularInline):
