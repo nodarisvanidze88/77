@@ -49,7 +49,7 @@ class ParentInvoice(models.Model):
     invoice = models.CharField(max_length=50, unique=True)
     customer_info = models.ForeignKey(Customers, on_delete=models.CASCADE, related_name='customer_Info')
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='supervizer')
-    date = models.DateTimeField(auto_now=True)
+    date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=ORDER_STATUSES, default='Open')
 
     def __str__(self):

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import CollectedProduct, Users, ParentInvoice
 from .models import Customers, ProductList
+from django.utils.timezone import localtime
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source = 'category_name.category_name')
@@ -25,3 +26,10 @@ class PharentInvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParentInvoice
         fields = ['invoice','customer_info','user','date','status', 'get_total']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.date:
+            local_date_time =localtime(instance.date)
+            representation['date'] = local_date_time.strftime('%Y-%m-%d %I:%M %p')
+        return representation

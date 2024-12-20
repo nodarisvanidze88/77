@@ -158,7 +158,7 @@ class Get_pharent_invoice(APIView):
       customer_info = request.query_params.get('customer_info', None)
       if customer_info is None:
         return Response({"error": "Customer info is required"}, status=400)
-      invoice = ParentInvoice.objects.filter(customer_info=customer_info)
+      invoice = ParentInvoice.objects.filter(customer_info=customer_info).order_by('-date')
       serializer = PharentInvoiceSerializer(invoice, many=True)
       return Response(serializer.data)
    
