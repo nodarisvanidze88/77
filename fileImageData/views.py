@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Case, When, Value, IntegerField
 from .serializers import CollectedProductSerializer, CustomersSerializer, ProductListSerializer, PharentInvoiceSerializer
 from .models import Customers, Product_Category, MissingPhoto, ParentInvoice, CollectedProduct
 from .new_data import get_CSV_File_content
@@ -154,19 +155,55 @@ def get_without_image_list(request):
   
 
 class Get_pharent_invoice(APIView):
-   def get(self, request, *args, **kwargs):
-      customer_info = request.query_params.get('customer_info', None)
-      if customer_info is None:
-        return Response({"error": "Customer info is required"}, status=400)
-      invoice = ParentInvoice.objects.filter(customer_info=customer_info).order_by('-date')
-      serializer = PharentInvoiceSerializer(invoice, many=True)
-      return Response(serializer.data)
+  def get(self, request, *args, **kwargs):
+    customer_info = request.query_params.get('customer_info', None)
+    mode = request.query_params.get('mode', None)
+    if customer_info is None:
+      return Response({"error": "Customer info is required"}, status=400)
+    if mode == 'All' or mode is None or mode=='':
+      invoice = ParentInvoice.objects.filter(customer_info=customer_info).annotate(
+      status_order=Case(
+          When(status='Open', then=Value(1)),
+          When(status='Confirmed', then=Value(2)),
+          When(status='Delivered', then=Value(3)),
+          When(status='Canceled', then=Value(4)),
+          output_field=IntegerField(),
+      )).order_by('status_order','-date')
+    else:
+      invoice = ParentInvoice.objects.filter(customer_info=customer_info, status=mode).order_by('-date')
+    serializer = PharentInvoiceSerializer(invoice, many=True)
+    return Response(serializer.data)
+  
+  def put(self, request, *args, **kwargs):
+    invoice = request.query_params.get('invoice', None)
+    status = request.query_params.get('status', None)
+    if invoice is None or status is None or status == 'Open' or status == '':
+      return Response({"error": "Invoice is required"}, status=400)
+    try:
+      invoice_instance = ParentInvoice.objects.get(invoice=invoice)
+      invoice_instance.status = status
+      invoice_instance.save()
+    except:
+      return Response({"error": "Invoice not found"}, status=400)
+    if status =='Confirmed':
+      collected_products = CollectedProduct.objects.filter(invoice__invoice=invoice)
+      for product in collected_products:
+        product_item = ProductList.objects.get(id=product.product_ID.id)
+        if product_item.qty_in_wh ==0 or product_item.qty_in_wh<product.quantity:
+          product.status = 'Missing'
+          product.save()
+          continue
+        product_item.qty_in_wh -= product.quantity
+        product_item.save()
+      return Response({"message": "Invoice status updated and changed quantities"}, status=200)
+    return Response({"message": "Invoice status updated"}, status=200)
+   
    
 class Get_Collected_products(APIView):
-   def get(self, request, *args, **kwargs):
-      invoice = request.query_params.get('invoice', None)
-      if invoice is None:
-        return Response({"error": "Invoice is required"}, status=400)
-      collected_products = CollectedProduct.objects.filter(invoice__invoice=invoice)
-      serializer = CollectedProductSerializer(collected_products, many=True)
-      return Response(serializer.data)
+  def get(self, request, *args, **kwargs):
+    invoice = request.query_params.get('invoice', None)
+    if invoice is None:
+      return Response({"error": "Invoice is required"}, status=400)
+    collected_products = CollectedProduct.objects.filter(invoice__invoice=invoice)
+    serializer = CollectedProductSerializer(collected_products, many=True)
+    return Response(serializer.data)
