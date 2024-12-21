@@ -43,7 +43,8 @@ def getCSVFile(request):
 class ProductListView(APIView):
     def get(self, request, *args, **kwargs):
         category_id = request.query_params.get('category_id', None)
-        queryset = ProductList.objects.filter(qty_in_wh__gt=0)
+        missing_photos = MissingPhoto.objects.values_list('product_id', flat=True)
+        queryset = ProductList.objects.filter(qty_in_wh__gt=0).exclude(id__in=missing_photos)
         if category_id and category_id != '-1':
           queryset = queryset.filter(category_name__id=category_id)
         else:
@@ -56,7 +57,8 @@ class ProductListView(APIView):
 
 class GetProductIDs(APIView):
    def get(self, request, *args, **kwargs):
-      result = ProductList.objects.filter(qty_in_wh__gt=0).order_by('id').values_list('id',flat=True)
+      missing_photos = MissingPhoto.objects.values_list('product_id', flat=True)
+      result = ProductList.objects.filter(qty_in_wh__gt=0).exclude(id__in=missing_photos).order_by('id').values_list('id',flat=True)
       return Response(result)
 
 class GetOneProductDetails(APIView):
