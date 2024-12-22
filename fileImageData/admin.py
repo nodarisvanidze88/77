@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import ProductList, Users, CollectedProduct, Customers, Product_Category, MissingPhoto, ParentInvoice
-from .download_xlsx import get_excel_file
+from .download_xlsx import get_excel_file, get_invoice_excel
 from django.db.models import Sum
 # Register your models here.
 class Product_Admin_View(admin.ModelAdmin):
@@ -94,11 +94,20 @@ class CollectedProductInline(admin.TabularInline):
 
 class ParentInvoiceAdmin(admin.ModelAdmin):
     list_display = ('invoice', 'date','customer_info','sum_total','status')
+    search_fields = ['invoice','customer_info__customer_name','status']
+    list_filter = ['status']
     inlines = [CollectedProductInline]
     def sum_total(self, obj):
         return CollectedProduct.objects.filter(invoice=obj).aggregate(Sum('total'))['total__sum'] or 0
     
     sum_total.short_description = 'Sum of Products' 
+
+    actions=['export_invoice_excel']
+
+    @admin.action(description='Export Invoice to Excel')
+    def export_invoice_excel(self,request,queryset):
+        custom_query = queryset.values().values_list('invoice','customer_info','status')
+        return get_invoice_excel(query=custom_query)
 
 admin.site.register(ProductList, Product_Admin_View)
 admin.site.register(Users)
