@@ -13,7 +13,7 @@ def send_invoice_email(sender, instance,**kwargs):
             'New Invoice',
             f'Invoice {instance.invoice} has been created',
             'nodarisvanidze88@gmail.com',
-            ['info@bsi.ge'],)
+            ['info@bsi.ge','vaxo@bsi.ge'],)
         email.attach('invoice.xlsx', invoice, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         email.send()
         
