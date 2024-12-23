@@ -1,7 +1,7 @@
 import pandas as pd
 from io import BytesIO
 from .models import CollectedProduct, Customers
-
+import datetime
 
 def invoice_constructor(query):
     output = BytesIO()
@@ -42,7 +42,7 @@ def invoice_constructor(query):
             invoice_titele_format = workbook.add_format({'bold': True,'font_size':10})
             seler_buyer_title_format = workbook.add_format({'bold': True,'font_size':9,'align':'right'})
             seler_buyer_values_format = workbook.add_format({'text_wrap': True,'font_size':9,'align':'left'})
-            
+            blank_cell_format = workbook.add_format({'font_size':9,'align':'left','bottom': 1})
             # Set the column width.
             worksheet.set_column('A:A', 0.17)
             worksheet.set_column('B:B', 3.43)
@@ -112,7 +112,7 @@ def invoice_constructor(query):
                 
                 for ind,data_item in enumerate(data,15):
                     for st,nd,col in zip(start_col,end_col,col_names):
-                        if len(str(data_item[col])) > 45:
+                        if len(str(data_item[col])) > 35:
                             worksheet.set_row(ind-1,25)
                         if col =='№':
                             worksheet.merge_range(f'{st}{ind}:{nd}{ind}', data_item[col], first_col_format)
@@ -130,9 +130,29 @@ def invoice_constructor(query):
                             worksheet.merge_range(f'{st}{ind}:{nd}{ind}', data_item[col], quantity_format)
                         elif col == 'თანხა':
                             worksheet.merge_range(f'{st}{ind}:{nd}{ind}', data_item[col], total_format)
-                worksheet.merge_range(f'W{len(data)+15}:X{len(data)+15}',f'=SUM(V15:V{len(data)+14})',total_cost_format)
-                    
-
+            last_row = len(data)+15
+            worksheet.merge_range(f'W{last_row}:X{last_row}',f'=SUM(V15:V{last_row-1})',total_cost_format)
+            worksheet.set_row(last_row, 27)
+            worksheet.set_row(last_row+1, 2.25)   
+            worksheet.merge_range(f'A{last_row+3}:C{last_row+3}','შენიშვნა',seler_buyer_title_format)
+            worksheet.merge_range(f'D{last_row+3}:W{last_row+3}','',blank_cell_format)
+            worksheet.set_row(last_row+4, 2.25) 
+            worksheet.set_row(last_row+5, 2.25)
+            worksheet.merge_range(f'A{last_row+7}:G{last_row+7}','სულ გადმოსარიცხი თანხა',seler_buyer_title_format) 
+            worksheet.merge_range(f'K{last_row+7}:W{last_row+7}','',seler_buyer_values_format)
+            worksheet.set_row(last_row+8, 2.25)
+            worksheet.merge_range(f'A{last_row+8}:G{last_row+8}','ინვოისი ძალაშია:',seler_buyer_title_format) 
+            worksheet.write(f'I{last_row+8}','',blank_cell_format)
+            worksheet.merge_range(f'K{last_row+8}:N{last_row+8}','დღის განმავლობაში',workbook.add_format({'bold':True,'font_size':9,'align':'left'}))
+            worksheet.set_row(last_row+9, 2.25)
+            worksheet.set_row(last_row+10, 9.25)
+            worksheet.merge_range(f'F{last_row+12}:L{last_row+12}','გამყიდველი',workbook.add_format({'bold':True,'font_size':9,'align':'center'}))
+            worksheet.merge_range(f'Q{last_row+12}:Y{last_row+12}','მყიდველი',workbook.add_format({'bold':True,'font_size':9,'align':'center'}))
+            worksheet.merge_range(f'F{last_row+14}:L{last_row+14}','',blank_cell_format)
+            worksheet.merge_range(f'Q{last_row+14}:Y{last_row+14}','',blank_cell_format)
+            worksheet.set_row(last_row+15, 2.25)
+            worksheet.set_row(last_row+16, 8.25)
+            worksheet.merge_range(f'Q{last_row+18}:Y{last_row+18}',f'{datetime.datetime.strftime(i[3],'%Y-%m-%d %H:%M')}',workbook.add_format({'bold':True,'font_size':9,'align':'center','num_format': 'yyyy-mm-dd hh:mm'}))
     output.seek(0)
                 
     return output

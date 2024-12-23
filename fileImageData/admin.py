@@ -106,7 +106,7 @@ class ParentInvoiceAdmin(admin.ModelAdmin):
 
     @admin.action(description='Export Invoice to Excel')
     def export_invoice_excel(self,request,queryset):
-        custom_query = queryset.values().values_list('invoice','customer_info','status')
+        custom_query = queryset.values().values_list('invoice','customer_info','status','date')
         return get_invoice_excel(query=custom_query)
 
 admin.site.register(ProductList, Product_Admin_View)
