@@ -152,7 +152,7 @@ def invoice_constructor(query):
             worksheet.merge_range(f'Q{last_row+14}:Y{last_row+14}','',blank_cell_format)
             worksheet.set_row(last_row+15, 2.25)
             worksheet.set_row(last_row+16, 8.25)
-            worksheet.merge_range(f'Q{last_row+18}:Y{last_row+18}',f'{datetime.datetime.strftime(i[3],'%Y-%m-%d %H:%M')}',workbook.add_format({'bold':True,'font_size':9,'align':'center','num_format': 'yyyy-mm-dd hh:mm'}))
+            worksheet.merge_range(f"Q{last_row+18}:Y{last_row+18}",f"{datetime.datetime.strftime(i[3],'%Y-%m-%d %H:%M')}",workbook.add_format({'bold':True,'font_size':9,'align':'center','num_format': 'yyyy-mm-dd hh:mm'}))
     output.seek(0)
                 
     return output
