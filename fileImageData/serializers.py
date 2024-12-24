@@ -11,9 +11,17 @@ class ProductListSerializer(serializers.ModelSerializer):
 class CollectedProductSerializer(serializers.ModelSerializer):
     invoice = serializers.PrimaryKeyRelatedField(queryset=ParentInvoice.objects.all())
     product_ID = serializers.PrimaryKeyRelatedField(queryset=ProductList.objects.all())
+    qty_in_wh = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = CollectedProduct
-        fields= ['invoice','product_ID','quantity','price']
+        fields = ['invoice', 'product_ID', 'quantity', 'price', 'qty_in_wh','total','status','image_url']
+
+    def get_image_url(self, obj):
+        return obj.product_ID.image_urel if obj.product_ID.image_urel else None
+    def get_qty_in_wh(self, obj):
+        return obj.product_ID.qty_in_wh if obj.product_ID.qty_in_wh else None
 
 class CustomersSerializer(serializers.ModelSerializer):
     class Meta:

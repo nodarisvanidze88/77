@@ -17,7 +17,6 @@ def invoice_constructor(query, for_mail=False):
                 sheet_name_start+=1
             
         if for_mail:
-            workbook.close() 
             output.seek(0)
             return output.getvalue()
     if not for_mail:
