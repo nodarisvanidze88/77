@@ -242,8 +242,6 @@ class Collected_products_viewset(APIView):
         customer_info=current_customer,
         user=current_user
     )
-    invoice_instance.status = 'Open'
-    invoice_instance.save()
     collected_product_data = {
         'invoice': invoice_instance.id,
         'product_ID': product.id,

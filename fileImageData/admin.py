@@ -108,9 +108,12 @@ class ParentInvoiceAdmin(admin.ModelAdmin):
     def export_invoice_excel(self,request,queryset):
         custom_query = queryset.values().values_list('invoice','customer_info','status','date')
         return get_invoice_excel(query=custom_query)
-
+class UsersAdmin(admin.ModelAdmin):
+    list_display = ['user','status','vizer']
+    search_fields =['user']
+    list_filter = ['status','vizer']
 admin.site.register(ProductList, Product_Admin_View)
-admin.site.register(Users)
+admin.site.register(Users, UsersAdmin)
 admin.site.register(CollectedProduct, CollectedItemsAdmin)
 admin.site.register(Customers)
 admin.site.register(Product_Category)
