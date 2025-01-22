@@ -220,7 +220,7 @@ class Collected_products_viewset(APIView):
         invoice_number = collected_data["invoice"]
         user_id = collected_data['user']
         customer_id = collected_data['customer_info']
-        product_id = int(collected_data['product_ID'])
+        product_id = collected_data['product_ID']
         quantity = int(collected_data['quantity'])
         price = float(collected_data['price'])
     except (KeyError, ValueError, TypeError):

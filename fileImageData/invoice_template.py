@@ -2,7 +2,7 @@ import pandas as pd
 from io import BytesIO
 from .models import CollectedProduct, Customers
 import datetime
-
+import time
 def invoice_constructor(query, for_mail=False):
     output = BytesIO()
     with pd.ExcelWriter(output,engine='xlsxwriter') as writer:
@@ -10,15 +10,14 @@ def invoice_constructor(query, for_mail=False):
         sheet_name_start = 0
         if for_mail:
             excel_body_builder(workbook,query, sheet_name_start, for_mail=True)
-            print(output.getvalue())
+
         else:
             for i in query:
                 excel_body_builder(workbook,i, sheet_name_start, for_mail=False)
                 sheet_name_start+=1
-            
-        if for_mail:
-            output.seek(0)
-            return output.getvalue()
+    if for_mail:
+        output.seek(0)
+        return output.getvalue()
     if not for_mail:
         output.seek(0)
         return output
@@ -35,6 +34,7 @@ def excel_body_builder(workbook, invoice, sheet_name_start, for_mail=False):
     invoice_data = CollectedProduct.objects.filter(invoice__invoice=invoice_id)
     customer = Customers.objects.get(id=customer_id)
     data = []
+    
     for index,item in enumerate(invoice_data,1):
         data.append(
             {'№':index,
@@ -46,7 +46,6 @@ def excel_body_builder(workbook, invoice, sheet_name_start, for_mail=False):
                 'რაოდენობა': item.quantity,
                 'თანხა': item.total,
                 })
-    
     try:
         worksheet = workbook.add_worksheet(f'{customer.customer_name}')
     except:
