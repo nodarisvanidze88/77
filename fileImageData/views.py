@@ -8,9 +8,17 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Case, When, Value, IntegerField
 from .serializers import CollectedProductSerializer, CustomersSerializer, ProductListSerializer, PharentInvoiceSerializer
-from .models import Customers, Product_Category, MissingPhoto, ParentInvoice, CollectedProduct
+from .models import Customers, Product_Category, MissingPhoto, ParentInvoice, CollectedProduct, ProductList
 from .new_data import get_CSV_File_content
 from .storage_content import list_files_in_bucket
+import os
+import tempfile
+import subprocess
+from django.http import HttpResponse, Http404
+from django.conf import settings
+from google.cloud import storage
+from django.contrib import messages
+from django.shortcuts import render, redirect
 
 @api_view(['GET'])
 def getCSVFile(request):
@@ -266,3 +274,135 @@ class Collected_products_viewset(APIView):
     except:
       return Response({"error": "Invoice not found"}, status=400)
     return Response({"message": "Invoice deleted"}, status=200)
+  
+
+def download_images_by_category_view(request):
+    """
+    1) For each category, fetch the corresponding product images from GCS
+    2) Download to local temp folder
+    3) Create a rar archive per category, splitting into 200 MB parts
+    4) Show links to the resulting .rar archives so the user can download them
+    """
+
+    # -------------
+    # Safety Check
+    # -------------
+    if not request.user.is_superuser:
+        messages.error(request, "You must be a superuser to download images.")
+        return redirect('admin:app_product_category_changelist')
+    
+    # -------------
+    # Google Client
+    # -------------
+    client = storage.Client(credentials=settings.GS_CREDENTIALS)
+    bucket = client.bucket("nodari")  # define your BUCKET name in settings
+
+    # -------------
+    # Prepare a temp directory to hold images & archives
+    # -------------
+    temp_root = tempfile.mkdtemp()  # e.g. /tmp/tmpab12def
+    download_links = []  # We'll store (category_name, archive_paths)
+
+    # -------------
+    # Process each category
+    # -------------
+    all_categories = Product_Category.objects.all()
+    for category in all_categories:
+        # 1) Get all products for this category
+        products = ProductList.objects.filter(category_name=category)
+        if not products.exists():
+            continue
+        
+        category_temp_dir = os.path.join(temp_root, category.category_name.replace(" ", "_"))
+        os.makedirs(category_temp_dir, exist_ok=True)
+
+        # 2) For each product, see if there's an image in GCS that matches product.id
+        for product in products:
+            if not product.image_urel:
+                continue
+            
+            # The bucket file name is presumably your product ID + extension,
+            # or maybe you have to parse product.image_urel to get the actual path in GCS
+            # We'll assume the product.image_urel is something like 
+            # "https://storage.googleapis.com/BUCKET_NAME/<FILENAME>"
+            # so we parse out the <FILENAME>.
+            # For example, if you need something else, adjust accordingly.
+            
+            blob_name = product.image_urel.split('/')[-1]  # last part
+            blob = bucket.blob(blob_name)
+            if blob.exists():
+                local_file_path = os.path.join(category_temp_dir, blob_name)
+                blob.download_to_filename(local_file_path)
+        
+        # 3) RAR the entire category folder, splitting into 200MB volumes
+        # rar a -v200m /path/to/archive.rar /path/to/category_temp_dir/*
+        # By default, rar will produce something like:
+        #   archive.part1.rar, archive.part2.rar, ...
+        archive_name = f"{category.category_name.replace(' ', '_')}.rar"
+        archive_full_path = os.path.join(category_temp_dir, archive_name)
+
+        # If rar is installed, run a subprocess
+        # This will create splitted archives if needed:
+        #     e.g. archive.part1.rar, archive.part2.rar ...
+        try:
+            subprocess.run(
+                [
+                    r"C:\Program Files\WinRAR\WinRAR.exe", "a", "-v200m",  # split volumes at 200MB
+                    archive_full_path,
+                    os.path.join(category_temp_dir, "*")
+                ],
+                check=True
+            )
+            # Now we might have .rar, .part1.rar, .part2.rar, etc.
+            
+            # Let's collect all .rar files in the category_temp_dir
+            rar_files = [
+                f for f in os.listdir(category_temp_dir) 
+                if f.endswith(".rar") or ".part" in f
+            ]
+            # Convert them to absolute paths
+            rar_paths = [os.path.join(category_temp_dir, rf) for rf in rar_files]
+            download_links.append((category.category_name, rar_paths))
+
+        except subprocess.CalledProcessError as e:
+            messages.error(request, f"Error compressing category {category.category_name}: {e}")
+            continue
+
+    # -------------
+    # Render a page that lists links to each RAR file
+    # -------------
+    # Because the archives might be quite large, you usually do not want to
+    # stream them from memory. Instead, you can serve them via a Django view
+    # that streams from disk (or re-upload them to the bucket for re-download).
+    #
+    # For simplicity, let's store them in a globally accessible 'temp'
+    # folder, then generate direct links. In production, you'd want a
+    # more robust solution (like storing them in a dedicated place, or in GCS).
+    #
+    # We'll just show them in a template with links to a separate "download_file" view.
+    #
+    # E.g. /admin/app/download-file/?path=<path>
+    #
+    return render(request, "admin/download_images.html", {
+        "download_links": download_links
+    })
+
+import mimetypes
+from wsgiref.util import FileWrapper
+from django.utils.encoding import smart_str
+from django.shortcuts import redirect
+from django.http import FileResponse
+
+def admin_download_file(request):
+    requested_path = request.GET.get("path", "")
+    # Optionally verify that 'requested_path' is within your temp_root
+    
+    if not os.path.exists(requested_path):
+        raise Http404("File not found.")
+    
+    file_name = os.path.basename(requested_path)
+    file_wrapper = FileWrapper(open(requested_path, 'rb'))
+    file_mime_type, _ = mimetypes.guess_type(requested_path)
+    response = FileResponse(file_wrapper, content_type=file_mime_type or 'application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+    return response
