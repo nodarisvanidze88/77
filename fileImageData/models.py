@@ -3,6 +3,13 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Sum
 class Product_Category(models.Model):
     category_name = models.CharField(max_length=100, unique=True)
+    rar_file_url = models.URLField(blank=True, null=True)
+
+    @property
+    def get_total(self):
+        total_products = ProductList.objects.filter(category_name=self).count()
+        return total_products
+    
     def __str__(self):
         return self.category_name
     

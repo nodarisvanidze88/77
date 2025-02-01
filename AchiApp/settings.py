@@ -26,6 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 GOOGLE_SHEET = os.getenv('GOOGLE_SHEET')
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(os.path.join(BASE_DIR,'service-account.json'))
+GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST= 'smtp.gmail.com'
 EMAIL_PORT = 587

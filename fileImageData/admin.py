@@ -4,10 +4,9 @@ from .models import ProductList, Users, CollectedProduct, Customers, Product_Cat
 from .download_xlsx import get_excel_file, get_invoice_excel
 from django.db.models import Sum
 from django.urls import reverse, path
-from django.shortcuts import redirect
 from django.utils.html import format_html
-from .views import download_images_by_category_view 
-# Register your models here.
+from .views import download_images_by_category_view_new
+from django.utils.safestring import mark_safe
 class Product_Admin_View(admin.ModelAdmin):
     list_display = ['code', 'id', 'item_name', 'category_name', 
                     'dimention', 'warehouse', 'qty_in_wh', 'price', 'display_image']
@@ -116,34 +115,43 @@ class UsersAdmin(admin.ModelAdmin):
     list_display = ['user','status','vizer']
     search_fields =['user']
     list_filter = ['status','vizer']
+
+class ProductCategoryAdmin(admin.ModelAdmin):
+    list_display = ['category_name', 'get_total_products','download_images_link']
+
+    def get_total_products(self, obj):
+        return obj.get_total
+
+    get_total_products.short_description = 'Total Products'
+
+    def download_images_link(self, obj):
+        if obj.rar_file_url:
+            return mark_safe(f'<a href="{obj.rar_file_url}" target="_blank" class="button">Download RAR File</a>')
+        else:
+            return mark_safe(f'''
+                <form action="{reverse('download-images-by-category')}" method="get" onsubmit="disableButton(this)">
+                    <input type="hidden" name="id" value="{obj.id}">
+                    <button type="submit" style="background: #28a745; color: white; padding: 5px 10px; border: none; cursor: pointer;">
+                        Generate & Download RAR ({obj.get_total})
+                    </button>
+                </form>
+                <script>
+                    function disableButton(form) {{
+                        let button = form.querySelector("button");
+                        button.disabled = true;
+                        button.innerText = "Processing...";
+                    }}
+                </script>
+            ''')
+
+
+    download_images_link.short_description = "Download Images"
+    # download_images_link.allow_tags = True
+
 admin.site.register(ProductList, Product_Admin_View)
 admin.site.register(Users, UsersAdmin)
 admin.site.register(CollectedProduct, CollectedItemsAdmin)
 admin.site.register(Customers)
-# admin.site.register(Product_Category)
 admin.site.register(MissingPhoto,Missing_Photo_Admin_View)
 admin.site.register(ParentInvoice, ParentInvoiceAdmin)
-
-@admin.register(Product_Category)
-class ProductCategoryAdmin(admin.ModelAdmin):
-    list_display = ['category_name', 'download_images_link']
-    
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            path(
-                'download-images/',
-                self.admin_site.admin_view(download_images_by_category_view),
-                name='download-images-by-category',
-            ),
-        ]
-        return custom_urls + urls
-
-    def download_images_link(self, obj):
-        url = reverse('admin:download-images-by-category')
-        return format_html(
-            '<a class="button" href="{}">Download All Category Images</a>',
-            url
-        )
-    download_images_link.short_description = "Download Images"
-    download_images_link.allow_tags = True
+admin.site.register(Product_Category, ProductCategoryAdmin)
