@@ -294,8 +294,7 @@ def download_images_by_category_view_new(request):
           return HttpResponse(f"Files were not downloaded. Check gsutil logs.", status=500)
         local_rar_file_path = f"{category.category_name}.rar"
         create_rar_file(local_folder_path, local_rar_file_path)
-        if not os.path.exists(local_rar_file_path):
-            return HttpResponse("RAR file was not created successfully.", status=500)
+
         upload_file_to_gcs(bucket_name, local_rar_file_path, local_folder_path,rar_file_name)
         # rar_file_url = f"https://storage.googleapis.com/{bucket_name}/{rar_file_name}"
         # # # Clean up local files and folder
