@@ -4,5 +4,3 @@ google_bucket.json
 db.sqlite3
 .env
 service-account.json
-fileImageData/migrations
-fileImageData/__pycache__
