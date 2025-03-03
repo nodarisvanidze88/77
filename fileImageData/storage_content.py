@@ -26,7 +26,7 @@ def create_rar_file(folder_path, rar_file_path):
     rar_file_full_path = os.path.join(folder_path, rar_file_path)
     try:
         subprocess.run(
-            [r"C:\Program Files\WinRAR\WinRAR.exe", "a", "-r", rar_file_full_path, folder_path],
+            ["rar", "a", "-r", rar_file_full_path, folder_path],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -80,7 +80,7 @@ def gsutil_download_multiple(bucket_name, file_names, destination_folder):
         os.makedirs(destination_folder)
     client = storage.Client(credentials=settings.GS_CREDENTIALS)
     bucket = client.bucket(bucket_name)
-    gsutil_path = '"C:\\Users\\Nodar Svanidze\\AppData\\Local\\Google\\Cloud SDK\\google-cloud-sdk\\platform\\gsutil\\gsutil.py"'
+    gsutil_path = 'gsutil'
 
     gs_images = []
     for file_name in file_names:
@@ -88,12 +88,12 @@ def gsutil_download_multiple(bucket_name, file_names, destination_folder):
             gs_images.append(f"gs://{bucket_name}/{file_name}")
 
     for i in range(0, len(gs_images),200):
-        gsutil_command = ["python",gsutil_path, "-m", "cp"]
+        gsutil_command = [gsutil_path, "-m", "cp"]
         gsutil_command.extend(gs_images[i:i+200])
         gsutil_command.append(f'"{destination_folder}"')
         try:
 
-            subprocess.run(" ".join(gsutil_command), check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+            subprocess.run(gsutil_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
 
         except subprocess.CalledProcessError as e:
             print(f"STDERR: {e.stderr}")
