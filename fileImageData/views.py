@@ -285,7 +285,7 @@ def download_images_by_category_view_new(request):
         if not file_names:
             return HttpResponse(f"No images found for category '{category.category_name}'.", status=404)        
         file_names = list(file_names)
-        local_folder_path = f"./{category.category_name}"  # Local path for downloading files
+        # local_folder_path = f"./{category.category_name}"  # Local path for downloading files
         gsutil_download_multiple(bucket_name, file_names, local_folder_path)
         local_rar_file_path = f"{local_folder_path}.rar"
         create_rar_file(local_folder_path, local_rar_file_path)
