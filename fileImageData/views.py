@@ -296,11 +296,11 @@ def download_images_by_category_view_new(request):
         create_rar_file(local_folder_path, local_rar_file_path)
 
         upload_file_to_gcs(bucket_name, local_rar_file_path, local_folder_path,rar_file_name)
-        # rar_file_url = f"https://storage.googleapis.com/{bucket_name}/{rar_file_name}"
-        # # # Clean up local files and folder
-        # category.rar_file_url = rar_file_url
-        # category.save()
-        # delete_local_folder(local_folder_path)
+        rar_file_url = f"https://storage.googleapis.com/{bucket_name}/{rar_file_name}"
+        # # Clean up local files and folder
+        category.rar_file_url = rar_file_url
+        category.save()
+        delete_local_folder(local_folder_path)
         return redirect('/admin/fileImageData/product_category/')
     except Product_Category.DoesNotExist:
         return HttpResponse("Category not found.", status=404)
