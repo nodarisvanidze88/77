@@ -283,12 +283,19 @@ def download_images_by_category_view_new(request):
             if product.image_urel:
                 file_names.append(f"{product.id}.jpg")
         if not file_names:
-            return HttpResponse(f"No images found for category '{category.category_name}'.", status=404)        
-        file_names = list(file_names)
+            return HttpResponse(f"No images found for category '{category.category_name}'.", status=404)
+        print(f"Downloading files: {file_names}")        
+        # file_names = list(file_names)
         # local_folder_path = f"./{category.category_name}"  # Local path for downloading files
         gsutil_download_multiple(bucket_name, file_names, local_folder_path)
+        downloaded_files = os.listdir(local_folder_path)
+        print(f"Files in {local_folder_path}: {downloaded_files}")
+        if not downloaded_files:
+          return HttpResponse(f"Files were not downloaded. Check gsutil logs.", status=500)
         local_rar_file_path = f"{local_folder_path}.rar"
         create_rar_file(local_folder_path, local_rar_file_path)
+        if not os.path.exists(local_rar_file_path):
+            return HttpResponse("RAR file was not created successfully.", status=500)
         upload_file_to_gcs(bucket_name, local_rar_file_path, local_folder_path,rar_file_name)
         rar_file_url = f"https://storage.googleapis.com/{bucket_name}/{rar_file_name}"
         # # Clean up local files and folder
