@@ -26,7 +26,7 @@ def create_rar_file(folder_path, rar_file_path):
     rar_file_full_path = os.path.join(folder_path, rar_file_path)
     try:
         subprocess.run(
-            ["rar", "a", "-r", rar_file_full_path, folder_path],
+            ["rar", "a", "-r", folder_path,rar_file_full_path],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
