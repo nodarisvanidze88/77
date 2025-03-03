@@ -70,14 +70,10 @@ def delete_local_folder(folder_path):
 def gsutil_download_multiple(bucket_name, file_names, destination_folder):
     """
     Use gsutil to download multiple files from GCS.
-
-    :param bucket_name: GCS bucket name
-    :param file_names: List of file names to download
-    :param destination_folder: Local folder to store downloaded files
     """
-    # Ensure the destination folder exists
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
+
     client = storage.Client(credentials=settings.GS_CREDENTIALS)
     bucket = client.bucket(bucket_name)
     gsutil_path = 'gsutil'
@@ -87,20 +83,29 @@ def gsutil_download_multiple(bucket_name, file_names, destination_folder):
         if bucket.blob(file_name).exists():
             gs_images.append(f"gs://{bucket_name}/{file_name}")
         else:
-            print(f"Warning: {file_name} does not exist in GCS.")
-    if not gs_images:
-        print("No files found in GCS to download.")
-        return
-    print(f"Executing gsutil command for {len(gs_images)} files...")
-    for i in range(0, len(gs_images),200):
-        gsutil_command = [gsutil_path, "-m", "cp"]
-        gsutil_command.extend(gs_images[i:i+200])
-        gsutil_command.append(destination_folder)
-        try:
+            print(f"⚠️ Warning: {file_name} does not exist in GCS.")
 
-            subprocess.run(gsutil_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
-            print(f"Successfully downloaded {len(gs_images[i:i+200])} files.")
+    if not gs_images:
+        print("❌ No valid files found in GCS to download.")
+        return
+
+    print(f"📥 Downloading {len(gs_images)} files...")
+
+    for i in range(0, len(gs_images), 200):
+        gsutil_command = f"{gsutil_path} -m cp {' '.join(gs_images[i:i+200])} {destination_folder}"
+        print(f"🛠 Running command: {gsutil_command}")  # Debugging output
+
+        try:
+            result = subprocess.run(
+                gsutil_command, 
+                shell=True, 
+                check=True, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                text=True
+            )
+            print(f"✅ Successfully downloaded {len(gs_images[i:i+200])} files.")
+            print(f"🔍 GSUTIL Output: {result.stdout}")
         except subprocess.CalledProcessError as e:
-            print(f"STDERR: {e.stderr}")
-            print(f"Error downloading files: {e}")
+            print(f"❌ ERROR: {e.stderr}")
             raise
