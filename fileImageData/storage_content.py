@@ -26,7 +26,7 @@ def create_rar_file(folder_path, rar_file_path):
     rar_file_full_path = os.path.join(folder_path, rar_file_path)
     try:
         subprocess.run(
-            ["rar", "a", "-r", rar_file_full_path, f"'{folder_path}'"],
+            ["rar", "a", "-r", rar_file_full_path, folder_path],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -92,7 +92,7 @@ def gsutil_download_multiple(bucket_name, file_names, destination_folder):
     print(f"📥 Downloading {len(gs_images)} files...")
 
     for i in range(0, len(gs_images), 200):
-        gsutil_command = f"{gsutil_path} -m cp {' '.join(gs_images[i:i+200])} {destination_folder}"
+        gsutil_command = f"{gsutil_path} -m cp {' '.join(gs_images[i:i+200])} '{destination_folder}'"
         print(f"🛠 Running command: {gsutil_command}")  # Debugging output
 
         try:
